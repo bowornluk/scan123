@@ -516,6 +516,7 @@
         }, 500);
     }
 
+    // 1. แก้ไขฟังก์ชัน processCheckIn (สำหรับสแกนหน้า)
     async function processCheckIn(student) {
         let lat = '', lng = '';
         if(navigator.geolocation) {
@@ -531,16 +532,37 @@
 
         if(res) {
             Swal.fire({
-                title: res.type === 'CheckIn' ? 'เข้างานสำเร็จ' : (res.type === 'CheckOut' ? 'ออกงานสำเร็จ' : 'แจ้งเตือน'),
+                title: 'บันทึกสำเร็จ',
                 text: res.message,
                 icon: res.type === 'AlreadyCheckedOut' ? 'warning' : 'success',
                 timer: 3000, showConfirmButton: false
             });
+            
+            // --- ส่วนที่แก้ไข: ปรับรูปแบบการแสดงผลในประวัติการสแกน ---
             const log = document.getElementById('scan-log');
-            log.innerHTML = `<div class="p-2 border-b text-xs">${new Date().toLocaleTimeString()} - ${res.message}</div>` + log.innerHTML;
+            const timeNow = new Date().toLocaleTimeString('th-TH');
+            
+            const newLogEntry = `
+                <div class="bg-white p-3 mb-2 rounded border-l-4 border-blue-500 shadow-sm text-left">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-lg text-blue-700">${timeNow}</span>
+                        <span class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">รหัส: ${student.id}</span>
+                    </div>
+                    <div class="font-bold text-gray-800 text-sm">${student.name}</div>
+                    <div class="text-xs text-gray-500">สาขา: ${student.dept || '-'}</div>
+                    <div class="text-xs text-green-600 mt-1 pt-1 border-t border-gray-100">
+                        ${res.message}
+                    </div>
+                </div>
+            `;
+            
+            // ลบข้อความ "ประวัติการสแกนวันนี้..." ออกถ้ามี
+            if(log.innerText.includes('ประวัติการสแกนวันนี้')) log.innerHTML = '';
+            
+            log.innerHTML = newLogEntry + log.innerHTML;
+            // -----------------------------------------------------
         }
     }
-
     // --- API HELPER ---
     async function callAPI(action, payload = {}) {
         try {
@@ -776,17 +798,18 @@
         }
     }
 
+    // 2. แก้ไขฟังก์ชัน submitManualCheckIn (สำหรับบันทึกมือ) ให้แสดงผลด้วย
     async function submitManualCheckIn() {
         const id = document.getElementById('manual-id').value;
         const name = document.getElementById('manual-name').innerText;
-        const type = document.getElementById('manual-type').value; // <--- รับค่าจาก Dropdown
+        const dept = document.getElementById('manual-dept').innerText; // ดึงสาขามาแสดง
+        const type = document.getElementById('manual-type').value;
         const file = document.getElementById('manual-img').files[0];
 
         if(!file) return Swal.fire('แจ้งเตือน', 'กรุณาแนบรูปถ่ายยืนยัน หรือหลักฐาน', 'warning');
 
         showLoading(true);
         
-        // 1. Get GPS
         let lat = '', lng = '';
         if(navigator.geolocation) {
             try {
@@ -795,7 +818,6 @@
             } catch(e) { console.log('GPS Fail'); }
         }
 
-        // 2. Resize Image
         let imgBase64 = null;
         try {
             const img = await faceapi.bufferToImage(file);
@@ -811,21 +833,37 @@
             return Swal.fire('Error', 'รูปภาพไม่ถูกต้อง', 'error');
         }
 
-        // 3. Send API (เพิ่ม manualType ไปใน payload)
         const res = await callAPI('manualCheckIn', { 
             id, name, lat, lng, 
             image: imgBase64,
-            manualType: type // <--- ส่งค่าประเภทไปที่ Backend
+            manualType: type
         });
         
         showLoading(false);
         if(res) {
             document.getElementById('manual-modal').classList.add('hidden');
-            Swal.fire({
-                title: 'สำเร็จ',
-                text: res.message,
-                icon: 'success'
-            });
+            Swal.fire({ title: 'สำเร็จ', text: res.message, icon: 'success' });
+
+            // --- ส่วนที่เพิ่ม: อัปเดต Log หน้าสแกนด้วย ---
+            const log = document.getElementById('scan-log');
+            const timeNow = new Date().toLocaleTimeString('th-TH');
+            
+            const newLogEntry = `
+                <div class="bg-white p-3 mb-2 rounded border-l-4 border-yellow-500 shadow-sm text-left">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-lg text-yellow-700">${timeNow}</span>
+                        <span class="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded-full">รหัส: ${id}</span>
+                    </div>
+                    <div class="font-bold text-gray-800 text-sm">${name} (บันทึกมือ)</div>
+                    <div class="text-xs text-gray-500">สาขา: ${dept || '-'}</div>
+                    <div class="text-xs text-green-600 mt-1 pt-1 border-t border-gray-100">
+                        ${res.message}
+                    </div>
+                </div>
+            `;
+            if(log.innerText.includes('ประวัติการสแกนวันนี้')) log.innerHTML = '';
+            log.innerHTML = newLogEntry + log.innerHTML;
+            // ------------------------------------------
         }
     }
     // --- ATTENDANCE TABLE (แก้ไข: เพิ่ม Loading และจัดการข้อมูลว่าง) ---
