@@ -130,11 +130,28 @@
                 </div>
             </div>
 
-            <div id="page-members" class="page-section hidden p-6">
-                <div class="flex justify-between items-center mb-6">
+           <div id="page-members" class="page-section hidden p-6">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <h2 class="text-2xl font-bold">จัดการสมาชิก</h2>
-                    <button onclick="openMemberModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ เพิ่มสมาชิก</button>
+                    
+                    <div class="flex gap-2">
+                        <button onclick="loadMembersTable()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex items-center gap-2 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                            รีเฟรช
+                        </button>
+
+                        <button onclick="openMemberModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex items-center gap-2 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                            </svg>
+                            เพิ่มสมาชิก
+                        </button>
+                    </div>
                 </div>
+
                 <div class="bg-white rounded shadow overflow-x-auto">
                     <table class="w-full text-left">
                         <thead class="bg-gray-100 border-b">
@@ -171,8 +188,8 @@
                                 <th class="p-3 whitespace-nowrap">วันที่</th>
                                 <th class="p-3 whitespace-nowrap">รหัส</th>
                                 <th class="p-3 whitespace-nowrap">ชื่อ</th>
-                                <th class="p-3 whitespace-nowrap">เข้า</th>
-                                <th class="p-3 whitespace-nowrap">ออก</th>
+                                <th class="p-3 whitespace-nowrap">เวลาเข้า</th>
+                                <th class="p-3 whitespace-nowrap">เวลาออก</th>
                                 <th class="p-3 whitespace-nowrap">สถานะ</th>
                                 <th class="p-3 whitespace-nowrap">ชม.รวม</th>
                                 <th class="p-3 whitespace-nowrap">สถานที่</th>
@@ -201,7 +218,7 @@
                                 <th class="p-3">รหัส</th>
                                 <th class="p-3">ชื่อ-สกุล</th>
                                 <th class="p-3">สาขา</th>
-                                <th class="p-3 text-center">มาเรียน (วัน)</th>
+                                <th class="p-3 text-center">จำนวนฝึก (วัน)</th>
                                 <th class="p-3 text-center text-orange-600">สาย (ครั้ง)</th>
                                 <th class="p-3 text-center text-red-600">ลา (ครั้ง)</th>
                                 <th class="p-3 text-right">ชั่วโมงรวม</th>
