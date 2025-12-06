@@ -292,7 +292,7 @@
         </div>
     </div>
 
-    <div id="manual-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
+   <div id="manual-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden">
         <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
             <h2 class="text-xl font-bold mb-4">บันทึกเวลาด้วยตัวเอง</h2>
             <div class="mb-4">
@@ -310,14 +310,23 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-sm font-bold mb-1">รูปถ่ายยืนยัน (ปัจจุบัน)</label>
+                <label class="block text-sm font-bold mb-1">ประเภทการบันทึก</label>
+                <select id="manual-type" class="w-full border p-2 rounded bg-gray-50">
+                    <option value="checkin">✅ เข้างาน / ฝึกงาน (ปกติ)</option>
+                    <option value="late_req">⚠️ ขอเข้าสาย (มีเหตุจำเป็น)</option>
+                    <option value="leave">✈️ ลา (ป่วย/กิจ)</option>
+                    <option value="holiday">🏖️ วันหยุด / Work from Home</option>
+                </select>
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-bold mb-1">รูปถ่ายยืนยัน / หลักฐานการลา</label>
                 <input type="file" id="manual-img" accept="image/*" capture="user" class="w-full text-sm">
-                <p class="text-xs text-gray-500 mt-1">สามารถกดถ่ายจากกล้องได้เลย</p>
+                <p class="text-xs text-gray-500 mt-1">รูปถ่ายปัจจุบัน หรือรูปใบลา/หลักฐาน</p>
             </div>
 
             <div class="flex justify-end gap-2">
                 <button onclick="document.getElementById('manual-modal').classList.add('hidden')" class="bg-gray-300 px-4 py-2 rounded">ยกเลิก</button>
-                <button onclick="submitManualCheckIn()" id="btn-manual-submit" class="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50" disabled>ยืนยันเช็คอิน</button>
+                <button onclick="submitManualCheckIn()" id="btn-manual-submit" class="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50" disabled>ยืนยัน</button>
             </div>
         </div>
     </div>
@@ -770,9 +779,10 @@
     async function submitManualCheckIn() {
         const id = document.getElementById('manual-id').value;
         const name = document.getElementById('manual-name').innerText;
+        const type = document.getElementById('manual-type').value; // <--- รับค่าจาก Dropdown
         const file = document.getElementById('manual-img').files[0];
 
-        if(!file) return Swal.fire('แจ้งเตือน', 'กรุณาแนบรูปถ่ายยืนยัน', 'warning');
+        if(!file) return Swal.fire('แจ้งเตือน', 'กรุณาแนบรูปถ่ายยืนยัน หรือหลักฐาน', 'warning');
 
         showLoading(true);
         
@@ -790,7 +800,7 @@
         try {
             const img = await faceapi.bufferToImage(file);
             const cvs = document.createElement('canvas');
-            const MAX_WIDTH = 600; // Resize to save storage
+            const MAX_WIDTH = 600; 
             const scale = MAX_WIDTH / img.width;
             cvs.width = MAX_WIDTH;
             cvs.height = img.height * scale;
@@ -801,9 +811,11 @@
             return Swal.fire('Error', 'รูปภาพไม่ถูกต้อง', 'error');
         }
 
-        // 3. Send API
+        // 3. Send API (เพิ่ม manualType ไปใน payload)
         const res = await callAPI('manualCheckIn', { 
-            id, name, lat, lng, image: imgBase64 
+            id, name, lat, lng, 
+            image: imgBase64,
+            manualType: type // <--- ส่งค่าประเภทไปที่ Backend
         });
         
         showLoading(false);
@@ -816,7 +828,6 @@
             });
         }
     }
-
     // --- ATTENDANCE TABLE (แก้ไข: เพิ่ม Loading และจัดการข้อมูลว่าง) ---
   // --- Update loadAttendanceTable to show image ---
     async function loadAttendanceTable() {
